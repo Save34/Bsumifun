@@ -1,0 +1,5 @@
+flask==2.3.3
+werkzeug==2.3.7
+python-dotenv==1.0.0
+flask-cors==5.0.1
+gunicorn==21.2.0 

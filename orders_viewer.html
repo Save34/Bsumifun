@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель заказов</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        h1, h2 {
+            color: #009688;
+        }
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            padding: 10px 15px;
+            background-color: #009688;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-logout {
+            background-color: #f44336;
+        }
+        .error-message {
+            color: #f44336;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 20px;
+        }
+        .login-section, .orders-section {
+            display: none;
+        }
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+        }
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+        }
+        .search-box button {
+            background-color: #009688;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-new {
+            background-color: #e3f2fd;
+            color: #0277bd;
+        }
+        .status-processing {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        .status-completed {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-cancelled {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-section" id="loginSection">
+        <div class="form-container">
+            <h2>Вход в систему</h2>
+            <div class="error-message" id="loginError"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Логин:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="orders-section" id="ordersSection">
+        <div class="header">
+            <h1>Заказы</h1>
+            <button id="logoutBtn" class="btn btn-logout">Выйти</button>
+        </div>
+        <div class="container">
+            <div class="action-buttons">
+                <button id="refreshBtn" class="btn">Обновить</button>
+                <button id="exportBtn" class="btn">Экспорт</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Поиск по имени, телефону или ID заказа">
+                <button id="searchBtn">Поиск</button>
+            </div>
+            <div class="loading" id="loadingIndicator">Загрузка...</div>
+            <div class="empty-message" id="emptyMessage">Нет заказов.</div>
+            <table id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Дата</th>
+                        <th>Имя</th>
+                        <th>Телефон</th>
+                        <th>Кол-во</th>
+                        <th>Сумма</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const loginSection = document.getElementById('loginSection');
+        const ordersSection = document.getElementById('ordersSection');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const ordersTableBody = document.getElementById('ordersTableBody');
+        const emptyMessage = document.getElementById('emptyMessage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const ordersTable = document.getElementById('ordersTable');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchInput = document.getElementById('searchInput');
+
+        // Проверка авторизации при загрузке страницы
+        function checkAuth() {
+            loadingIndicator.style.display = 'block';
+            emptyMessage.style.display = 'none';
+            ordersTable.style.display = 'none';
+            
+            // Отладка
+            console.log('Проверка авторизации...');
+            
+            // Проверяем, авторизован ли пользователь через API
+            fetch('/api/orders?admin=true')
+                .then(response => {
+                    console.log('Статус ответа:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Данные ответа:', data);
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (data.success) {
+                        showOrders();
+                        displayOrders(data.orders);
+                    } else {
+                        showLogin();
+                        if (data.message) {
+                            console.log('Сообщение ошибки:', data.message);
+                        }
+                    }
+                })
+                .catch(error => {
+                    loadingIndicator.style.display = 'none';
+                    showLogin();
+                    console.error('Ошибка проверки авторизации:', error);
+                    loginError.textContent = 'Ошибка подключения к серверу. Попробуйте позже.';
+                });
+        }
+
+        // Загрузка списка заказов
+        function loadOrders() {
+            loadingIndicator.style.display = 'block';
+            emptyMessage.style.display = 'none';
+            ordersTable.style.display = 'none';
+            
+            console.log('Загрузка заказов...');
+            
+            fetch('/api/orders?admin=true')
+                .then(response => {
+                    console.log('Статус ответа:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Данные ответа:', data);
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (data.success) {
+                        displayOrders(data.orders);
+                    } else {
+                        if (data.message === 'Требуется авторизация') {
+                            showLogin();
+                        }
+                        console.log('Сообщение ошибки:', data.message);
+                    }
+                })
+                .catch(error => {
+                    loadingIndicator.style.display = 'none';
+                    console.error('Ошибка загрузки заказов:', error);
+                    alert('Ошибка загрузки заказов. Попробуйте позже.');
+                });
+        }
+
+        // Поиск заказов
+        function searchOrders(query) {
+            if (!query) {
+                loadOrders();
+                return;
+            }
+            
+            loadingIndicator.style.display = 'block';
+            emptyMessage.style.display = 'none';
+            ordersTable.style.display = 'none';
+            
+            fetch(`/api/orders/search?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    loadingIndicator.style.display = 'none';
+                    
+                    if (data.success) {
+                        displayOrders(data.orders);
+                    } else {
+                        if (data.message === 'Требуется авторизация') {
+                            showLogin();
+                        }
+                    }
+                })
+                .catch(error => {
+                    loadingIndicator.style.display = 'none';
+                    console.error('Ошибка поиска заказов:', error);
+                });
+        }
+
+        // Обновление статуса заказа
+        function updateOrderStatus(orderId, status) {
+            fetch(`/api/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadOrders();
+                    } else {
+                        alert('Ошибка изменения статуса: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка обновления статуса:', error);
+                });
+        }
+
+        // Экспорт заказов
+        function exportOrders() {
+            fetch('/api/orders/export')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Заказы успешно экспортированы: ' + data.message);
+                    } else {
+                        alert('Ошибка экспорта: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка экспорта заказов:', error);
+                });
+        }
+
+        // Отображение списка заказов
+        function displayOrders(orders) {
+            if (orders.length === 0) {
+                emptyMessage.style.display = 'block';
+                ordersTable.style.display = 'none';
+                return;
+            }
+
+            emptyMessage.style.display = 'none';
+            ordersTable.style.display = 'table';
+            ordersTableBody.innerHTML = '';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                
+                // Форматируем дату
+                const dateObj = new Date(order.date);
+                const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${dateObj.getFullYear()}`;
+                
+                // Определяем класс для статуса
+                const statusClass = order.status ? `status-${order.status}` : 'status-new';
+                const statusText = order.status ? order.status : 'новый';
+                
+                row.innerHTML = `
+                    <td>${order.order_id}</td>
+                    <td>${formattedDate}</td>
+                    <td>${order.name}</td>
+                    <td>${order.phone}</td>
+                    <td>${order.quantity || 1}</td>
+                    <td>${order.price || 890} сом</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>
+                        <select class="status-select" data-order-id="${order.order_id}">
+                            <option value="">Изменить статус</option>
+                            <option value="new">Новый</option>
+                            <option value="processing">В обработке</option>
+                            <option value="completed">Завершен</option>
+                            <option value="cancelled">Отменен</option>
+                        </select>
+                    </td>
+                `;
+                
+                ordersTableBody.appendChild(row);
+            });
+            
+            // Обработчики для выпадающих списков
+            document.querySelectorAll('.status-select').forEach(select => {
+                select.addEventListener('change', function() {
+                    const orderId = this.getAttribute('data-order-id');
+                    const newStatus = this.value;
+                    
+                    if (newStatus) {
+                        updateOrderStatus(orderId, newStatus);
+                    }
+                });
+            });
+        }
+
+        // Показываем форму входа
+        function showLogin() {
+            loginSection.style.display = 'block';
+            ordersSection.style.display = 'none';
+        }
+
+        // Показываем заказы
+        function showOrders() {
+            loginSection.style.display = 'none';
+            ordersSection.style.display = 'block';
+        }
+
+        // Обработка входа
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Отправляем запрос на сервер для авторизации
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            fetch('/api/login', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showOrders();
+                        loadOrders();
+                        loginError.textContent = '';
+                    } else {
+                        loginError.textContent = data.message || 'Неверное имя пользователя или пароль';
+                    }
+                })
+                .catch(error => {
+                    loginError.textContent = 'Ошибка соединения с сервером';
+                    console.error('Ошибка авторизации:', error);
+                });
+        });
+
+        // Обработка выхода
+        logoutBtn.addEventListener('click', function() {
+            fetch('/api/logout', {
+                method: 'POST'
+            })
+                .then(() => {
+                    showLogin();
+                })
+                .catch(error => {
+                    console.error('Ошибка выхода:', error);
+                });
+        });
+
+        // Обработка обновления списка заказов
+        refreshBtn.addEventListener('click', loadOrders);
+
+        // Обработка экспорта заказов
+        exportBtn.addEventListener('click', exportOrders);
+
+        // Обработка поиска
+        searchBtn.addEventListener('click', function() {
+            searchOrders(searchInput.value);
+        });
+
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                searchOrders(searchInput.value);
+            }
+        });
+
+        // Проверяем авторизацию при загрузке страницы
+        checkAuth();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,12 @@
+2025-04-28 23:02:41,268 INFO: [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.196.36:5001 [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:02:41,268 INFO: [33mPress CTRL+C to quit[0m [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:02:41,281 INFO:  * Restarting with stat [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:02:41,592 WARNING:  * Debugger is active! [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:02:41,609 INFO:  * Debugger PIN: 133-225-629 [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:03:47,062 INFO:  * Detected change in '/Users/tommy/PycharmProjects/PythonProject/1BALA011/BAY/app.py', reloading [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:03:47,143 INFO:  * Restarting with stat [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:03:47,680 WARNING:  * Debugger is active! [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
+2025-04-28 23:03:47,702 INFO:  * Debugger PIN: 133-225-629 [in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/werkzeug/_internal.py:187]
